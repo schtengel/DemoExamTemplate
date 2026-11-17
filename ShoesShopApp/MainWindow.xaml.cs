@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using ShoesShopApp.Models;
+using ShoesShopApp.ViewModels;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,9 +18,10 @@ namespace ShoesShopApp
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(User? user)
         {
             InitializeComponent();
+            DataContext = new ProductsViewModel(user);
         }
     }
 }
