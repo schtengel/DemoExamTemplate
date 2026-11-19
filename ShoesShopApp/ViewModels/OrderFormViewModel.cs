@@ -67,11 +67,7 @@ public partial class OrderFormViewModel : ObservableObject
         if (OrderDate == null || DeliveryDate == null) errors.Add("укажите дату заказа и дату выдачи");
         else if (DeliveryDate < OrderDate) errors.Add("дата выдачи не может быть раньше даты заказа");
 
-        if (errors.Count > 0)
-        {
-            Msg.Warn("Исправьте ошибки:\n- " + string.Join("\n- ", errors));
-            return;
-        }
+        if (Msg.HasErrors(errors)) return;
 
         order.StatusId = StatusId;
         order.PickupPointId = PickupPointId;
@@ -81,12 +77,7 @@ public partial class OrderFormViewModel : ObservableObject
         foreach (var item in items) order.OrderItems.Add(item);
         if (!IsEdit) db.Orders.Add(order);
 
-        try { db.SaveChanges(); }
-        catch (Exception ex)
-        {
-            Msg.Error("Не удалось сохранить заказ: " + (ex.InnerException ?? ex).Message);
-            return;
-        }
+        if (!db.TrySave()) return;
         window.DialogResult = true;
     }
 
@@ -95,7 +86,7 @@ public partial class OrderFormViewModel : ObservableObject
     {
         if (!Msg.Ask("Удалить заказ без возможности восстановления?")) return;
         db.Orders.Remove(order);
-        db.SaveChanges();
+        if (!db.TrySave()) return;
         window.DialogResult = true;
     }
 }

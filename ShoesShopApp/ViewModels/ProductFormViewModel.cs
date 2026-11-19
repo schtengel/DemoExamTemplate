@@ -74,11 +74,7 @@ namespace ShoesShopApp.ViewModels
             if (!int.TryParse(Quantity, out var quantityValue) || quantityValue < 0) errors.Add("Количество должно быть целым числом не меньше 0");
             if (!int.TryParse(Discount, out var discountValue) || discountValue is < 0 or > 100) errors.Add("Скидка должна быть целым числом от 0 до 100");
 
-            if (errors.Count > 0)
-            {
-                Msg.Warn("Исправьте ошибки:\n- " + string.Join("\n", errors));
-                return;
-            }
+            if (Msg.HasErrors(errors)) return;
 
             product.Article = Article.Trim();
             product.ProductName = ProductName.Trim();
@@ -93,16 +89,7 @@ namespace ShoesShopApp.ViewModels
             if (PickedFile != null) product.PhotoPath = PhotoHelper.Save(PickedFile);
             if (!IsEdit) db.Products.Add(product);
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-
-                Msg.Error("Не удалось сохранить товар: " + ex.GetBaseException().Message);
-                return;
-            }
+            if (!db.TrySave()) return;
 
             if (PickedFile != null) PhotoHelper.Delete(oldPhoto);
             window.DialogResult = true;
@@ -118,7 +105,7 @@ namespace ShoesShopApp.ViewModels
             }
             if (!Msg.Ask("Удалить товар без возможности восстановления?")) return;
             db.Products.Remove(product);
-            db.SaveChanges();
+            if (!db.TrySave()) return;
             window.DialogResult = true;
         }
     }

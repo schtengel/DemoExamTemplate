@@ -9,7 +9,7 @@ namespace ShoesShopApp.ViewModels;
 public partial class OrdersViewModel : ObservableObject
 {
     private readonly User user;
-    public bool IsAdmin { get; }
+    public bool IsAdmin;
 
     [ObservableProperty] private List<Order> orders = new();
     [ObservableProperty] private Order? selected;
@@ -17,7 +17,7 @@ public partial class OrdersViewModel : ObservableObject
     public OrdersViewModel(User user)
     {
         this.user = user;
-        IsAdmin = user.Role.RoleName == "Администратор";
+        IsAdmin = user.IsAdmin;
         Load();
     }
 

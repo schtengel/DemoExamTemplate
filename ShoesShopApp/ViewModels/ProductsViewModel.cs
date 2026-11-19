@@ -12,8 +12,8 @@ namespace ShoesShopApp.ViewModels
 
         public User? User { get; }
         public string UserName => User?.FullName ?? "Guest";
-        public bool IsAdmin => User?.Role.RoleName == "Администратор";
-        public bool IsStaff => IsAdmin || User?.Role.RoleName == "Менеджер";
+        public bool IsAdmin => User?.IsAdmin == true;
+        public bool IsStaff => User?.IsStaff == true;
         public List<Supplier> Suppliers { get; }
 
         [ObservableProperty, NotifyPropertyChangedFor(nameof(Products))] private string search = "";
@@ -25,9 +25,10 @@ namespace ShoesShopApp.ViewModels
         {
             get
             {
+                var id = SelectedSupplier?.SupplierId ?? 0;
                 var words = Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 var q = all.Where(p =>
-                (SelectedSupplier == null || SelectedSupplier.SupplierId == 0 || p.SupplierId == SelectedSupplier.SupplierId)
+                (id == 0 || p.SupplierId == id)
                 && words.All(w => p.SearchText.Contains(w, StringComparison.OrdinalIgnoreCase)));
                 return SortIndex switch
                 {
