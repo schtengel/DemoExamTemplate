@@ -8,7 +8,7 @@
         Title="Авторизация" 
         Style="{StaticResource Win}" Height="450" Width="450">
     <StackPanel Margin="30" VerticalAlignment="Center">
-        <Image Source="/Resources/Images/Icon.png" Height="90" Margin="0 0 0 15"/>
+        <Image Source="/Images/Icon.png" Height="90" Margin="0 0 0 15"/>
         <TextBlock Text="Login"/>
         <TextBox Text="{Binding Login}"/>
         <TextBlock Text="Password" Margin=" 0 10 0 0"/>
