@@ -8,6 +8,6 @@ namespace ShoesShopApp.Models
 {
     public partial class Order
     {
-        public string Articles => string.Join(", ", OrderItems.Select(i => $"{i.Product.Article}, {i.Product.Quantity}"));
+        public string Articles => string.Join(", ", OrderItems.Select(i => $"{i.Product.Article}, {i.Quantity}"));
     }
 }

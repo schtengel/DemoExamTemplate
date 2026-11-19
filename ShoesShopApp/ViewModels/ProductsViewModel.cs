@@ -3,11 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using ShoesShopApp.Models;
 using ShoesShopApp.Views;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ShoesShopApp.ViewModels
 {

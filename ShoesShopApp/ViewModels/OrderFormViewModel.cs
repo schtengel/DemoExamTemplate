@@ -1,8 +1,8 @@
-﻿using System.Windows;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using ShoesShopApp.Models;
+using System.Windows;
 
 namespace ShoesShopApp.ViewModels;
 

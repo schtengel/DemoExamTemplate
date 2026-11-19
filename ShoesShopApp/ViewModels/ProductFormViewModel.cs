@@ -78,7 +78,7 @@ namespace ShoesShopApp.ViewModels
 
             if (errors.Count > 0)
             {
-                Msg.Warn("Исправьте ошибки:\n- " + string.Join("\n ", errors));
+                Msg.Warn("Исправьте ошибки:\n- " + string.Join("\n", errors));
                 return;
             }
 

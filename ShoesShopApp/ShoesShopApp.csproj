@@ -9,7 +9,6 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<Resource Include="Resources\**" />
 		<Content Include="Images\**" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
@@ -39,10 +38,6 @@
     <Resource Include="Images\Icon.JPG" />
     <Resource Include="Images\Icon.png" />
     <Resource Include="Images\picture.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\" />
   </ItemGroup>
 
 </Project>

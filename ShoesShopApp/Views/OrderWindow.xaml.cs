@@ -1,5 +1,5 @@
-﻿using System.Windows;
-using ShoesShopApp.ViewModels;
+﻿using ShoesShopApp.ViewModels;
+using System.Windows;
 
 namespace ShoesShopApp.Views;
 

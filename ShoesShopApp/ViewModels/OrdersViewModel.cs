@@ -3,9 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using ShoesShopApp.Models;
 using ShoesShopApp.Views;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace ShoesShopApp.ViewModels;
 

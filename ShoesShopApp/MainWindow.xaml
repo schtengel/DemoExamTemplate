@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         xml:lang="ru-RU"
         Style="{StaticResource Win}"
-        Title="MainWindow" Height="550" Width="900">
+        Title="Продукты" Height="550" Width="900">
     <DockPanel>
         <Grid DockPanel.Dock="Top">
             <Grid.ColumnDefinitions>
@@ -24,7 +24,7 @@
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
                 <TextBlock Text="{Binding UserName}" FontWeight="Bold" VerticalAlignment="Center"/>
-                <Button Content="Logout" Command="{Binding LogoutCommand}"/>
+                <Button Content="Выйти" Command="{Binding LogoutCommand}"/>
             </StackPanel>
         </Grid>
 
@@ -60,7 +60,7 @@
                             <StackPanel Grid.Column="1" Margin="10 0">
                                 <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16"/>
                                 <TextBlock Text="{Binding Description, StringFormat='Описание: {0}'}"  TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding Manufacturer.Manufacturer.Name, StringFormat='Производитель: {0}'}"/>
+                                <TextBlock Text="{Binding Manufacturer.ManufacturerName, StringFormat='Производитель: {0}'}"/>
                                 <TextBlock Text="{Binding Supplier.SupplierName, StringFormat='Поставщик: {0}'}"/>
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Цена: "/>

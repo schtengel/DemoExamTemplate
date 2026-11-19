@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ShoesShopApp.Models;
+﻿namespace ShoesShopApp.Models;
 
 public partial class Order
 {
