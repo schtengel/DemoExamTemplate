@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Windows;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using ShoesShopApp.Models;
@@ -40,8 +41,11 @@ public partial class OrdersViewModel : ObservableObject
     partial void OnSelectedChanged(Order? value)
     {
         if (value == null) return;
-        if (IsAdmin) OpenForm(value.OrderId);
-        Selected = null;
+        Application.Current.Dispatcher.BeginInvoke(() =>
+        {
+            if (IsAdmin) OpenForm(value.OrderId);
+            Selected = null;
+        });
     }
 
     [RelayCommand] private void Add() => OpenForm(null);

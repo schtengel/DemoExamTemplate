@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Windows;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using ShoesShopApp.Models;
@@ -63,8 +64,12 @@ namespace ShoesShopApp.ViewModels
         partial void OnSelectedChanged(Product? value)
         {
             if (value == null) return;
-            if (IsAdmin) OpenForm(value.ProductId);
-            Selected = null;
+            Application.Current.Dispatcher.BeginInvoke(() =>
+            {
+                if (IsAdmin) OpenForm(value.ProductId);
+                Selected = null;
+            });
+
         }
 
         [RelayCommand] private void Add() => OpenForm(null);
