@@ -63,8 +63,6 @@ namespace ShoesShopApp.ViewModels
         [RelayCommand]
         private void Save(Window window)
         {
-
-            //Валидация полей
             var errors = new List<string>();
             if (Article.Trim() == "") errors.Add("Введите артикул");
             else if (db.Products.Any(p => p.Article == Article.Trim() && p.ProductId != product.ProductId)) errors.Add("Товар с таким артикулом уже есть");

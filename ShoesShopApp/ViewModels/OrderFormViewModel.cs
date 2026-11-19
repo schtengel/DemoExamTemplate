@@ -29,7 +29,6 @@ public partial class OrderFormViewModel : ObservableObject
         IsEdit = id != null;
         if (!IsEdit)
         {
-            // Клиент нового заказа: текущий пользователь, код получения генерируется
             order = new Order { UserId = userId, PickupCode = Random.Shared.Next(100, 1000) };
             return;
         }
@@ -48,7 +47,6 @@ public partial class OrderFormViewModel : ObservableObject
         var errors = new List<string>();
         var items = new List<OrderItem>();
 
-        // Состав заказа вводится парами «артикул, количество»
         var parts = Articles.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0 || parts.Length % 2 != 0)
             errors.Add("укажите состав парами «артикул, количество», например: А112Т4, 2, F635R4, 1");
