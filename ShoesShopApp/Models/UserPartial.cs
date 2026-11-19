@@ -9,6 +9,6 @@ namespace ShoesShopApp.Models
     public partial class User
     {
         public bool IsAdmin => Role.RoleId == 1;
-        public bool IsStaff => Role.RoleId == 2;
+        public bool IsStaff => Role.RoleId == 2 || IsAdmin;
     }
 }
