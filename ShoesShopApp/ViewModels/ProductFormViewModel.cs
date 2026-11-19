@@ -2,15 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using ShoesShopApp.Models;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace ShoesShopApp.ViewModels
 {
@@ -65,7 +57,7 @@ namespace ShoesShopApp.ViewModels
         private void ChoosePhoto()
         {
             var dialog = new OpenFileDialog { Filter = "Изображения|*.jpg;*.jpeg;*.png" };
-            if(dialog.ShowDialog() == true) PickedFile = dialog.FileName;
+            if (dialog.ShowDialog() == true) PickedFile = dialog.FileName;
         }
 
         [RelayCommand]
@@ -74,9 +66,9 @@ namespace ShoesShopApp.ViewModels
 
             //Валидация полей
             var errors = new List<string>();
-            if (string.IsNullOrWhiteSpace(Article)) errors.Add("Введите артикул");
+            if (Article.Trim() == "") errors.Add("Введите артикул");
             else if (db.Products.Any(p => p.Article == Article.Trim() && p.ProductId != product.ProductId)) errors.Add("Товар с таким артикулом уже есть");
-            if (string.IsNullOrWhiteSpace(ProductName)) errors.Add("Введите наименование");
+            if (ProductName.Trim() == "") errors.Add("Введите наименование");
             if (CategoryId == 0) errors.Add("Выберите категорию");
             if (ManufacturerId == 0) errors.Add("Выберите производителя");
             if (SupplierId == 0) errors.Add("Выберите поставщика");
@@ -84,9 +76,9 @@ namespace ShoesShopApp.ViewModels
             if (!int.TryParse(Quantity, out var quantityValue) || quantityValue < 0) errors.Add("Количество должно быть целым числом не меньше 0");
             if (!int.TryParse(Discount, out var discountValue) || discountValue is < 0 or > 100) errors.Add("Скидка должна быть целым числом от 0 до 100");
 
-            if(errors.Count > 0)
+            if (errors.Count > 0)
             {
-                Msg.Warn("Исправьте ошибки:\n-" + string.Join(", ", errors));
+                Msg.Warn("Исправьте ошибки:\n- " + string.Join("\n ", errors));
                 return;
             }
 
@@ -100,8 +92,8 @@ namespace ShoesShopApp.ViewModels
             product.CategoryId = CategoryId;
             product.ManufacturerId = ManufacturerId;
             product.SupplierId = SupplierId;
-            if(PickedFile != null) product.PhotoPath = SavePhoto(PickedFile);
-            if(!IsEdit) db.Products.Add(product);
+            if (PickedFile != null) product.PhotoPath = PhotoHelper.Save(PickedFile);
+            if (!IsEdit) db.Products.Add(product);
 
             try
             {
@@ -110,18 +102,18 @@ namespace ShoesShopApp.ViewModels
             catch (Exception ex)
             {
 
-                Msg.Error("Не удалось сохранить товар: " + (ex.InnerException ?? ex).Message);
+                Msg.Error("Не удалось сохранить товар: " + ex.GetBaseException().Message);
                 return;
             }
 
-            if (PickedFile != null && oldPhoto != null) File.Delete(Path.Combine(AppContext.BaseDirectory, oldPhoto));
+            if (PickedFile != null) PhotoHelper.Delete(oldPhoto);
             window.DialogResult = true;
         }
 
         [RelayCommand]
         private void Delete(Window window)
         {
-            if(db.OrderItems.Any(i => i.ProductId == product.ProductId))
+            if (db.OrderItems.Any(i => i.ProductId == product.ProductId))
             {
                 Msg.Warn("Этот товар есть в заказах, поэтому его нельзя удалить.");
                 return;
@@ -130,18 +122,6 @@ namespace ShoesShopApp.ViewModels
             db.Products.Remove(product);
             db.SaveChanges();
             window.DialogResult = true;
-        }
-
-        private static string SavePhoto(string file)
-        {
-            var source = new BitmapImage(new Uri(file));
-            var k = Math.Min(1.0, Math.Min(300.0 / source.PixelWidth, 200.0 / source.PixelHeight));
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(new TransformedBitmap(source, new ScaleTransform(k, k))));
-            var path = $"Images\\{Guid.NewGuid()}.png";
-            using var stream = File.Create(Path.Combine(AppContext.BaseDirectory, path));
-            encoder.Save(stream);
-            return path;
         }
     }
 }
