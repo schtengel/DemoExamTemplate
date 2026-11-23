@@ -10,7 +10,7 @@ namespace ShoesShopApp.ViewModels;
 public partial class OrdersViewModel : ObservableObject
 {
     private readonly User user;
-    public bool IsAdmin;
+    public bool IsAdmin => user.IsAdmin;
 
     [ObservableProperty] private List<Order> orders = new();
     [ObservableProperty] private Order? selected;
@@ -18,7 +18,6 @@ public partial class OrdersViewModel : ObservableObject
     public OrdersViewModel(User user)
     {
         this.user = user;
-        IsAdmin = user.IsAdmin;
         Load();
     }
 
@@ -28,7 +27,8 @@ public partial class OrdersViewModel : ObservableObject
         Orders = db.Orders
             .Include(o => o.Status)
             .Include(o => o.PickupPoint)
-            .Include(o => o.OrderItems).ThenInclude(i => i.Product)
+            .Include(o => o.OrderItems)
+            .ThenInclude(i => i.Product)
             .OrderBy(o => o.OrderId)
             .ToList();
     }

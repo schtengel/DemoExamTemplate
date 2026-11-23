@@ -12,7 +12,7 @@ namespace ShoesShopApp.ViewModels
         private List<Product> all = new();
 
         public User? User { get; }
-        public string UserName => User?.FullName ?? "Guest";
+        public string UserName => User?.FullName ?? "Гость";
         public bool IsAdmin => User?.IsAdmin == true;
         public bool IsStaff => User?.IsStaff == true;
         public List<Supplier> Suppliers { get; }
@@ -28,15 +28,10 @@ namespace ShoesShopApp.ViewModels
             {
                 var id = SelectedSupplier?.SupplierId ?? 0;
                 var words = Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var q = all.Where(p =>
-                (id == 0 || p.SupplierId == id)
-                && words.All(w => p.SearchText.Contains(w, StringComparison.OrdinalIgnoreCase)));
-                return SortIndex switch
-                {
-                    1 => q.OrderBy(p => p.Quantity),
-                    2 => q.OrderByDescending(p => p.Quantity),
-                    _ => q
-                };
+                return all
+                    .Where(p => (id == 0 || p.SupplierId == id) &&
+                                words.All(w => p.SearchText.Contains(w, StringComparison.OrdinalIgnoreCase)))
+                    .OrderBy(p => SortIndex == 1 ? p.Quantity : SortIndex == 2 ? -p.Quantity : 0);
             }
         }        
 
@@ -69,7 +64,6 @@ namespace ShoesShopApp.ViewModels
                 if (IsAdmin) OpenForm(value.ProductId);
                 Selected = null;
             });
-
         }
 
         [RelayCommand] private void Add() => OpenForm(null);

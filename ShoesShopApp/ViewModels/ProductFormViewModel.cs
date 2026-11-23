@@ -9,27 +9,21 @@ namespace ShoesShopApp.ViewModels
     public partial class ProductFormViewModel : ObservableObject
     {
         private readonly AppDbContext db = new();
-        private readonly Product product;
         private readonly string? oldPhoto;
 
+        public Product Product { get; }
         public List<Category> Categories { get; }
         public List<Manufacturer> Manufacturers { get; }
         public List<Supplier> Suppliers { get; }
         public bool IsEdit { get; }
-        public int ProductId => product.ProductId;
-        public string Photo => PickedFile ?? product.Photo;
+        public string Photo => PickedFile ?? Product.Photo;
 
-        [ObservableProperty] private string article = "";
-        [ObservableProperty] private string productName = "";
-        [ObservableProperty] private string description = "";
-        [ObservableProperty] private string unit = "шт.";
+        // Числа вводятся строками, чтобы показать понятное сообщение при неверном вводе
         [ObservableProperty] private string price = "";
         [ObservableProperty] private string quantity = "";
         [ObservableProperty] private string discount = "0";
-        [ObservableProperty] private int categoryId;
-        [ObservableProperty] private int manufacturerId;
-        [ObservableProperty] private int supplierId;
         [ObservableProperty, NotifyPropertyChangedFor(nameof(Photo))] private string? pickedFile;
+
 
         public ProductFormViewModel(int? id)
         {
@@ -37,20 +31,12 @@ namespace ShoesShopApp.ViewModels
             Manufacturers = db.Manufacturers.ToList();
             Suppliers = db.Suppliers.ToList();
             IsEdit = id != null;
-            product = IsEdit ? db.Products.Find(id!.Value)! : new Product();
+            Product = IsEdit ? db.Products.Find(id!.Value)! : new Product { Article = "", ProductName = "", Unit = "шт." };
+            oldPhoto = Product.PhotoPath;
             if (!IsEdit) return;
-
-            oldPhoto = product.PhotoPath;
-            Article = product.Article;
-            ProductName = product.ProductName;
-            Description = product.Description ?? "";
-            Unit = product.Unit;
-            Price = product.Price.ToString();
-            Quantity = product.Quantity.ToString();
-            Discount = product.Discount.ToString();
-            CategoryId = product.CategoryId;
-            ManufacturerId = product.ManufacturerId;
-            SupplierId = product.SupplierId;
+            Price = Product.Price.ToString();
+            Quantity = Product.Quantity.ToString();
+            Discount = Product.Discount.ToString();
         }
 
         [RelayCommand]
@@ -64,33 +50,29 @@ namespace ShoesShopApp.ViewModels
         private void Save(Window window)
         {
             var errors = new List<string>();
-            if (Article.Trim() == "") errors.Add("Введите артикул");
-            else if (db.Products.Any(p => p.Article == Article.Trim() && p.ProductId != product.ProductId)) errors.Add("Товар с таким артикулом уже есть");
-            if (ProductName.Trim() == "") errors.Add("Введите наименование");
-            if (CategoryId == 0) errors.Add("Выберите категорию");
-            if (ManufacturerId == 0) errors.Add("Выберите производителя");
-            if (SupplierId == 0) errors.Add("Выберите поставщика");
-            if (!decimal.TryParse(Price, out var priceValue) || priceValue < 0) errors.Add("Цена должна быть числом не меньше 0");
-            if (!int.TryParse(Quantity, out var quantityValue) || quantityValue < 0) errors.Add("Количество должно быть целым числом не меньше 0");
-            if (!int.TryParse(Discount, out var discountValue) || discountValue is < 0 or > 100) errors.Add("Скидка должна быть целым числом от 0 до 100");
-
+            if (Product.Article.Trim() == "") errors.Add("Введите артикул");
+            else if (db.Products.Any(p => p.Article == Product.Article.Trim() && p.ProductId != Product.ProductId))
+                errors.Add("Товар с таким артикулом уже есть");
+            if (Product.ProductName.Trim() == "") errors.Add("Введите наименование");
+            if (Product.CategoryId == 0) errors.Add("Выберите категорию");
+            if (Product.ManufacturerId == 0) errors.Add("Выберите производителя");
+            if (Product.SupplierId == 0) errors.Add("Выберите поставщика");
+            if (!decimal.TryParse(Price, out var priceValue) || priceValue < 0)
+                errors.Add("Цена должна быть числом не меньше 0");
+            if (!int.TryParse(Quantity, out var quantityValue) || quantityValue < 0)
+                errors.Add("Количество должно быть целым числом не меньше 0");
+            if (!int.TryParse(Discount, out var discountValue) || discountValue is < 0 or > 100)
+                errors.Add("Скидка должна быть целым числом от 0 до 100");
             if (Msg.HasErrors(errors)) return;
 
-            product.Article = Article.Trim();
-            product.ProductName = ProductName.Trim();
-            product.Description = Description;
-            product.Unit = Unit;
-            product.Price = Math.Round(priceValue, 2);
-            product.Quantity = quantityValue;
-            product.Discount = discountValue;
-            product.CategoryId = CategoryId;
-            product.ManufacturerId = ManufacturerId;
-            product.SupplierId = SupplierId;
-            if (PickedFile != null) product.PhotoPath = PhotoHelper.Save(PickedFile);
-            if (!IsEdit) db.Products.Add(product);
-
+            Product.Article = Product.Article.Trim();
+            Product.ProductName = Product.ProductName.Trim();
+            Product.Price = Math.Round(priceValue, 2);
+            Product.Quantity = quantityValue;
+            Product.Discount = discountValue;
+            if (PickedFile != null) Product.PhotoPath = PhotoHelper.Save(PickedFile);
+            if (!IsEdit) db.Products.Add(Product);
             if (!db.TrySave()) return;
-
             if (PickedFile != null) PhotoHelper.Delete(oldPhoto);
             window.DialogResult = true;
         }
@@ -98,13 +80,13 @@ namespace ShoesShopApp.ViewModels
         [RelayCommand]
         private void Delete(Window window)
         {
-            if (db.OrderItems.Any(i => i.ProductId == product.ProductId))
+            if (db.OrderItems.Any(i => i.ProductId == Product.ProductId))
             {
                 Msg.Warn("Этот товар есть в заказах, поэтому его нельзя удалить.");
                 return;
             }
             if (!Msg.Ask("Удалить товар без возможности восстановления?")) return;
-            db.Products.Remove(product);
+            db.Products.Remove(Product);
             if (!db.TrySave()) return;
             window.DialogResult = true;
         }
