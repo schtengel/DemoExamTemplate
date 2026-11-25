@@ -6,9 +6,10 @@ namespace ShoesShopApp.Views;
 
 public partial class GraphicWindow : Window
 {
-    public GraphicWindow()
+    public GraphicWindow(User user)
     {
         InitializeComponent();
-        DataContext = new GraphicViewModel();
+        DataContext = new GraphicViewModel(user);
     }
+
 }

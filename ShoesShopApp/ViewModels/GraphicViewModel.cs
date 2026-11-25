@@ -1,22 +1,34 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DemEKZZ.Models;
 using Microsoft.EntityFrameworkCore;
-using ShoesShopApp.Models;
+using Microsoft.Win32;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using System.Diagnostics;
+using System.Windows;
 
 namespace ShoesShopApp.ViewModels;
 
 public partial class GraphicViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private List<Manufacturer> _manufacturers = [];
+    public User? User { get; }
+    public string UserName => User is null ? "Гость" : $"{User.FullName} | {User.Role?.RoleName}";
 
-    [ObservableProperty]
-    private DateTime _startDate;
+    [ObservableProperty] private List<TopModelItem> _topModels = [];
+    [ObservableProperty] private int _top5ManufacturersCount;
+    [ObservableProperty] private int _totalOrdersCount;
+    [ObservableProperty] private decimal _totalOrdersSum;
 
-    [ObservableProperty]
-    private DateTime _endDate;
+    [ObservableProperty] private DateTime _startDate;
+    [ObservableProperty] private DateTime _endDate;
 
-    public GraphicViewModel()
+    public GraphicViewModel(User? user)
     {
+        User = user;
+        QuestPDF.Settings.License = LicenseType.Community;
+
         var today = DateTime.Today;
         _startDate = new DateTime(today.Year, today.Month, 1);
         _endDate = _startDate.AddMonths(1).AddDays(-1);
@@ -29,40 +41,144 @@ public partial class GraphicViewModel : ObservableObject
 
     private void Load()
     {
-        using var db = new AppDbContext();
-
         var startLimit = DateOnly.FromDateTime(StartDate);
         var endLimit = DateOnly.FromDateTime(EndDate);
 
-        var list = db.Manufacturers
-            .Include(m => m.Products)
-                .ThenInclude(p => p.OrderItems)
-                    .ThenInclude(oi => oi.Order)
+        using var db = new AppDbContext();
+
+        var periodOrders = db.Orders
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(p => p.Manufacturer)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(p => p.Category) 
+            .Where(o => o.OrderDate >= startLimit && o.OrderDate <= endLimit)
             .ToList();
 
-        foreach (var m in list)
-        {
-            m.FilteredCount = m.Products
-                .SelectMany(p => p.OrderItems)
-                .Where(oi => oi.Order.OrderDate >= startLimit && oi.Order.OrderDate <= endLimit)
-                .Sum(oi => oi.Quantity); 
-        }
 
-        var top5 = list
-            .OrderByDescending(m => m.FilteredCount)
+        var top5 = periodOrders
+            .SelectMany(o => o.OrderItems)
+            .GroupBy(oi => new
+            {
+                oi.ProductId,
+                ModelName = oi.Product.Title,
+                ManufacturerName = oi.Product.Manufacturer.ManufacturerName
+            })
+            .Select(g => new TopModelItem
+            {
+                ModelName = g.Key.ModelName,
+                ManufacturerName = g.Key.ManufacturerName,
+                TotalPairs = g.Sum(oi => oi.Quantity)
+            })
+            .OrderByDescending(x => x.TotalPairs)
             .Take(5)
             .ToList();
 
-        int maxCount = top5.FirstOrDefault()?.FilteredCount ?? 0;
-
-        if (maxCount > 0)
+        int maxPairs = top5.FirstOrDefault()?.TotalPairs ?? 0;
+        if (maxPairs > 0)
         {
-            foreach (var m in top5)
+            foreach (var item in top5)
             {
-                m.ColumnWidth = (int)(500.0 * m.FilteredCount / maxCount);
+                item.ColumnWidth = (int)(420.0 * item.TotalPairs / maxPairs);
             }
         }
 
-        Manufacturers = top5;
+        TopModels = top5;
+
+        Top5ManufacturersCount = top5
+            .Select(x => x.ManufacturerName)
+            .Distinct()
+            .Count();
+
+        TotalOrdersCount = periodOrders.Count;
+
+        TotalOrdersSum = periodOrders
+            .SelectMany(o => o.OrderItems)
+            .Sum(oi => oi.Product.Price * (1 - oi.Product.Discount / 100m) * oi.Quantity);
+    }
+
+    [RelayCommand]
+    private void ExportPdf()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Filter = "PDF документы (*.pdf)|*.pdf",
+            FileName = $"Аналитика_{StartDate:dd.MM.yyyy}_{EndDate:dd.MM.yyyy}.pdf"
+        };
+
+        if (dialog.ShowDialog() != true)
+            return;
+
+        try
+        {
+            Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(12));
+
+                    page.Header().Column(header =>
+                    {
+                        header.Item().Text($"Аналитический отчёт ({StartDate:dd.MM.yyyy} — {EndDate:dd.MM.yyyy})").SemiBold().FontSize(16);
+                        header.Item().Text($"Сформировал: {UserName}").FontSize(10).FontColor(Colors.Grey.Darken2);
+                    });
+
+                    page.Content().PaddingTop(15).Column(col =>
+                    {
+                        col.Spacing(15);
+
+                        col.Item().Background(Colors.Grey.Lighten4).Padding(10).Column(summary =>
+                        {
+                            summary.Spacing(4);
+                            summary.Item().Text($"Общее количество заказов за период: {TotalOrdersCount}").SemiBold();
+                            summary.Item().Text($"Общая сумма заказов за период: {TotalOrdersSum:N2} ₽").SemiBold();
+                            summary.Item().Text($"Общее количество производителей топ-5: {Top5ManufacturersCount}").SemiBold();
+                        });
+
+                        col.Item().Text("Топ-5 моделей обуви в разрезе производителей:").SemiBold().FontSize(14);
+
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.ConstantColumn(35);
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(1.5f);
+                                columns.ConstantColumn(110);
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().BorderBottom(1).Padding(5).Text("№").SemiBold();
+                                header.Cell().BorderBottom(1).Padding(5).Text("Модель").SemiBold();
+                                header.Cell().BorderBottom(1).Padding(5).Text("Производитель").SemiBold();
+                                header.Cell().BorderBottom(1).Padding(5).AlignRight().Text("Заказано пар").SemiBold();
+                            });
+
+                            int index = 1;
+                            foreach (var item in TopModels)
+                            {
+                                table.Cell().BorderBottom(0.5f).Padding(5).Text(index++.ToString());
+                                table.Cell().BorderBottom(0.5f).Padding(5).Text(item.ModelName);
+                                table.Cell().BorderBottom(0.5f).Padding(5).Text(item.ManufacturerName);
+                                table.Cell().BorderBottom(0.5f).Padding(5).AlignRight().Text(item.TotalPairs.ToString());
+                            }
+                        });
+                    });
+
+                    page.Footer().AlignRight().Text($"Дата формирования: {DateTime.Now:dd.MM.yyyy HH:mm}").FontSize(10);
+                });
+            })
+            .GeneratePdf(dialog.FileName);
+
+            Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка при экспорте: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }

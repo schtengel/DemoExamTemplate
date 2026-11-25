@@ -4,7 +4,7 @@ namespace ShoesShopApp.Models
 {
     public partial class Product
     {
-        public string Title => $"{Category.CategoryName} | {ProductName}";
+        public string Title => $"{Category?.CategoryName} | {ProductName}";
         public bool HasDiscount => Discount > 0;
         public decimal FinalPrice => Price * (100 - Discount) / 100;
         public string RowColor => Discount > 15 ? "#2E8B57" : Quantity == 0 ? "LightBlue" : "White";

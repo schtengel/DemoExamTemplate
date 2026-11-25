@@ -21,16 +21,6 @@
                 <Button Content="Заказы" Command="{Binding OrdersCommand}" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}"/>
                 <Button Content="Добавить товар" Command="{Binding AddCommand}" Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
                 <Button Content="Аналитика" Command="{Binding GraphicCommand}" Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0"
-                            Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="С:" VerticalAlignment="Center" Margin="0,0,3,0"/>
-                    <DatePicker SelectedDate="{Binding StartDate}" Width="100" Margin="0,0,6,0"/>
-
-                    <TextBlock Text="По:" VerticalAlignment="Center" Margin="0,0,3,0"/>
-                    <DatePicker SelectedDate="{Binding EndDate}" Width="100" Margin="0,0,6,0"/>
-
-                    <Button Content="Экспорт в pdf" Command="{Binding ExportPdfCommand}"/>
-                </StackPanel>
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
