@@ -10,9 +10,8 @@ namespace ShoesShopApp.ViewModels
             MessageBox.Show(text, "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
         public static bool HasErrors(List<string> errors)
         {
-            if (errors.Count == 0) return false;
-            Warn("Исправьте ошибки:\n" + string.Join("\n", errors));
-            return true;
+            if (errors.Count == 0) Warn("Исправьте ошибки:\n" + string.Join("\n", errors));
+            return errors.Count > 0;
         }
     }
 }
