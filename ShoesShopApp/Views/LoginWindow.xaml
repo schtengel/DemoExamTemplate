@@ -6,14 +6,14 @@
         xmlns:local="clr-namespace:ShoesShopApp.Views"
         mc:Ignorable="d"
         Title="Авторизация" 
-        Style="{StaticResource Win}" Height="450" Width="450">
+        Style="{StaticResource Win}" Height="471" Width="450">
     <StackPanel Margin="30" VerticalAlignment="Center">
-        <Image Source="/Images/Icon.png" Height="90" Margin="0 0 0 15"/>
-        <TextBlock Text="Логин"/>
-        <TextBox Text="{Binding Login}"/>
-        <TextBlock Text="Пароль" Margin=" 0 10 0 0"/>
-        <PasswordBox x:Name="Pwd"/>
-        <Button Content="Войти" Margin="0 15 0 0" Command="{Binding SignInCommand}" CommandParameter="{Binding ElementName=Pwd}"/>
-        <Button Content="Войти как гость" Command="{Binding GuestCommand}" Margin="0 15 0 0"/>
+        <Image Source="/Images/Icon.png" Height="129" Margin="0 0 0 15" Width="415"/>
+        <TextBlock Text="Логин" Width="280"/>
+        <TextBox Text="{Binding Login}" Height="26" Width="282"/>
+        <TextBlock Text="Пароль" Margin=" 0 10 0 0" Width="280"/>
+        <PasswordBox x:Name="Pwd" Width="278" Height="32"/>
+        <Button Content="Войти" Margin="0 15 0 0" Command="{Binding SignInCommand}" CommandParameter="{Binding ElementName=Pwd}" Height="45"/>
+        <Button Content="Войти как гость" Command="{Binding GuestCommand}" Margin="0 15 0 0" Height="33"/>
     </StackPanel>
 </Window>

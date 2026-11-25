@@ -7,7 +7,7 @@
     <StackPanel Margin="20">
         <StackPanel Visibility="{Binding IsEdit, Converter={StaticResource BoolToVis}}">
             <TextBlock Text="Номер заказа"/>
-            <TextBox Text="{Binding OrderId, Mode=OneWay}" IsReadOnly="True"/>
+            <TextBox Text="{Binding OrderId, Mode=OneWay}" IsReadOnly="True" Height="32"/>
         </StackPanel>
 
         <TextBlock Text="Артикул заказа (артикул, количество через запятую)"/>

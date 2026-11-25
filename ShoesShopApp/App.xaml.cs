@@ -5,5 +5,4 @@ namespace ShoesShopApp
     public partial class App : Application
     {
     }
-
 }

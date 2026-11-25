@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ShoesShopApp"
         mc:Ignorable="d"
-        xml:lang="ru-RU"
+        xml:lang="ru-RU" WindowState="Maximized"
         Style="{StaticResource Win}"
         Title="Продукты" Height="550" Width="900">
     <DockPanel>
@@ -20,6 +20,17 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="Заказы" Command="{Binding OrdersCommand}" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}"/>
                 <Button Content="Добавить товар" Command="{Binding AddCommand}" Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
+                <Button Content="Аналитика" Command="{Binding GraphicCommand}" Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0"
+                            Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="С:" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                    <DatePicker SelectedDate="{Binding StartDate}" Width="100" Margin="0,0,6,0"/>
+
+                    <TextBlock Text="По:" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                    <DatePicker SelectedDate="{Binding EndDate}" Width="100" Margin="0,0,6,0"/>
+
+                    <Button Content="Экспорт в pdf" Command="{Binding ExportPdfCommand}"/>
+                </StackPanel>
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -29,7 +40,7 @@
         </Grid>
 
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="5"
-                    Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}">
+                    Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Center">
             <TextBox Width="250" ToolTip="Поиск" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
             <ComboBox Width="180" Margin="5 0" ItemsSource="{Binding Suppliers}"
                       DisplayMemberPath="SupplierName" SelectedItem="{Binding SelectedSupplier}"/>
