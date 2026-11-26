@@ -6,20 +6,32 @@ namespace ShoesShopApp.ViewModels
 {
     public static class PhotoHelper
     {
-        public static string Save(string file)
+        private static readonly string ImagesDir = Path.Combine(AppContext.BaseDirectory, "Images");
+
+        public static string Save(string sourceFile)
         {
-            var path = $"Images\\{Guid.NewGuid()}.png";
-            var options = new ResizeOptions { Size = new Size(300, 200), Mode = ResizeMode.Max };
-            using var image = Image.Load(file);
+            Directory.CreateDirectory(ImagesDir);
+
+            var relativePath = Path.Combine("Images", $"{Guid.NewGuid()}.png");
+            var fullPath     = Path.Combine(AppContext.BaseDirectory, relativePath);
+
+            var options = new ResizeOptions
+            {
+                Size = new Size(300, 200),
+                Mode = ResizeMode.Max
+            };
+
+            using var image = Image.Load(sourceFile);
             image.Mutate(x => x.Resize(options));
-            image.Save(Path.Combine(AppContext.BaseDirectory, path));
-            return path;
+            image.Save(fullPath);
+            return relativePath;
         }
 
-        public static void Delete(string? path)
+        public static void Delete(string? relativePath)
         {
-            if(path != null) File.Delete(Path.Combine(AppContext.BaseDirectory, path));
+            if (string.IsNullOrEmpty(relativePath)) return;
+            var fullPath = Path.Combine(AppContext.BaseDirectory, relativePath);
+            if (File.Exists(fullPath)) File.Delete(fullPath);
         }
-
     }
 }

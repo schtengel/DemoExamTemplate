@@ -29,8 +29,9 @@ namespace ShoesShopApp.ViewModels
                 var id = SelectedSupplier?.SupplierId ?? 0;
                 var words = Search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 var q = all.Where(p =>
-                (id == 0 || p.SupplierId == id)
-                && words.All(w => p.SearchText.Contains(w, StringComparison.OrdinalIgnoreCase)));
+                    (id == 0 || p.SupplierId == id) &&
+                    words.All(w => p.SearchText.Contains(w, StringComparison.OrdinalIgnoreCase)));
+
                 return SortIndex switch
                 {
                     1 => q.OrderBy(p => p.Quantity),
@@ -38,13 +39,13 @@ namespace ShoesShopApp.ViewModels
                     _ => q
                 };
             }
-        }        
+        }
 
         public ProductsViewModel(User? user)
         {
             User = user;
             using var db = new AppDbContext();
-            Suppliers = new List<Supplier> { new() { SupplierName = "Все поставщики" } }.Concat(db.Suppliers).ToList();
+            Suppliers = [new() { SupplierName = "Все поставщики" }, .. db.Suppliers.AsNoTracking().ToList()];
             SelectedSupplier = Suppliers[0];
             Load();
         }
@@ -52,7 +53,12 @@ namespace ShoesShopApp.ViewModels
         private void Load()
         {
             using var db = new AppDbContext();
-            all = db.Products.Include(p => p.Category).Include(p => p.Manufacturer).Include(p => p.Supplier).ToList();
+            all = db.Products
+                .Include(p => p.Category)
+                .Include(p => p.Manufacturer)
+                .Include(p => p.Supplier)
+                .AsNoTracking()
+                .ToList();
             OnPropertyChanged(nameof(Products));
         }
 
@@ -69,7 +75,6 @@ namespace ShoesShopApp.ViewModels
                 if (IsAdmin) OpenForm(value.ProductId);
                 Selected = null;
             });
-
         }
 
         [RelayCommand] private void Add() => OpenForm(null);

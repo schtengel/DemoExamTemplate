@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using ShoesShopApp.Models;
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
+using ShoesShopApp.Services;
 
 namespace ShoesShopApp.ViewModels
 {
@@ -10,7 +12,6 @@ namespace ShoesShopApp.ViewModels
     {
         private readonly AppDbContext db = new();
         private readonly Product product;
-        private readonly string? oldPhoto;
 
         public List<Category> Categories { get; }
         public List<Manufacturer> Manufacturers { get; }
@@ -33,24 +34,23 @@ namespace ShoesShopApp.ViewModels
 
         public ProductFormViewModel(int? id)
         {
-            Categories = db.Categories.ToList();
-            Manufacturers = db.Manufacturers.ToList();
-            Suppliers = db.Suppliers.ToList();
-            IsEdit = id != null;
-            product = IsEdit ? db.Products.Find(id!.Value)! : new Product();
+            Categories    = db.Categories.AsNoTracking().ToList();
+            Manufacturers = db.Manufacturers.AsNoTracking().ToList();
+            Suppliers     = db.Suppliers.AsNoTracking().ToList();
+            IsEdit        = id != null;
+            product       = IsEdit ? db.Products.Find(id!.Value)! : new Product();
             if (!IsEdit) return;
 
-            oldPhoto = product.PhotoPath;
-            Article = product.Article;
-            ProductName = product.ProductName;
-            Description = product.Description ?? "";
-            Unit = product.Unit;
-            Price = product.Price.ToString();
-            Quantity = product.Quantity.ToString();
-            Discount = product.Discount.ToString();
-            CategoryId = product.CategoryId;
+            Article        = product.Article;
+            ProductName    = product.ProductName;
+            Description    = product.Description ?? "";
+            Unit           = product.Unit;
+            Price          = product.Price.ToString();
+            Quantity       = product.Quantity.ToString();
+            Discount       = product.Discount.ToString();
+            CategoryId     = product.CategoryId;
             ManufacturerId = product.ManufacturerId;
-            SupplierId = product.SupplierId;
+            SupplierId     = product.SupplierId;
         }
 
         [RelayCommand]
@@ -63,50 +63,81 @@ namespace ShoesShopApp.ViewModels
         [RelayCommand]
         private void Save(Window window)
         {
-            var errors = new List<string>();
-            if (Article.Trim() == "") errors.Add("Введите артикул");
-            else if (db.Products.Any(p => p.Article == Article.Trim() && p.ProductId != product.ProductId)) errors.Add("Товар с таким артикулом уже есть");
-            if (ProductName.Trim() == "") errors.Add("Введите наименование");
-            if (CategoryId == 0) errors.Add("Выберите категорию");
-            if (ManufacturerId == 0) errors.Add("Выберите производителя");
-            if (SupplierId == 0) errors.Add("Выберите поставщика");
-            if (!decimal.TryParse(Price, out var priceValue) || priceValue < 0) errors.Add("Цена должна быть числом не меньше 0");
-            if (!int.TryParse(Quantity, out var quantityValue) || quantityValue < 0) errors.Add("Количество должно быть целым числом не меньше 0");
-            if (!int.TryParse(Discount, out var discountValue) || discountValue is < 0 or > 100) errors.Add("Скидка должна быть целым числом от 0 до 100");
-
+            var errors = Validate();
             if (Msg.HasErrors(errors)) return;
 
-            product.Article = Article.Trim();
-            product.ProductName = ProductName.Trim();
-            product.Description = Description;
-            product.Unit = Unit;
-            product.Price = Math.Round(priceValue, 2);
-            product.Quantity = quantityValue;
-            product.Discount = discountValue;
-            product.CategoryId = CategoryId;
+            decimal.TryParse(Price, out var priceValue);
+            int.TryParse(Quantity, out var quantityValue);
+            int.TryParse(Discount, out var discountValue);
+
+            var oldPhoto = product.PhotoPath;
+            string? newPhoto = null;
+            if (PickedFile != null) newPhoto = PhotoHelper.Save(PickedFile);
+
+            product.Article        = Article.Trim();
+            product.ProductName    = ProductName.Trim();
+            product.Description    = Description;
+            product.Unit           = Unit;
+            product.Price          = Math.Round(priceValue, 2);
+            product.Quantity       = quantityValue;
+            product.Discount       = discountValue;
+            product.CategoryId     = CategoryId;
             product.ManufacturerId = ManufacturerId;
-            product.SupplierId = SupplierId;
-            if (PickedFile != null) product.PhotoPath = PhotoHelper.Save(PickedFile);
+            product.SupplierId     = SupplierId;
+            if (newPhoto != null) product.PhotoPath = newPhoto;
+
             if (!IsEdit) db.Products.Add(product);
 
-            if (!db.TrySave()) return;
+            if (!db.TrySave())
+            {
+                if (newPhoto != null) PhotoHelper.Delete(newPhoto); // откат «сиротского» файла
+                return;
+            }
 
-            if (PickedFile != null) PhotoHelper.Delete(oldPhoto);
+            if (newPhoto != null) PhotoHelper.Delete(oldPhoto);
             window.DialogResult = true;
         }
 
         [RelayCommand]
         private void Delete(Window window)
         {
+            if (!IsEdit) return; // защита: новый товар не из БД
+
             if (db.OrderItems.Any(i => i.ProductId == product.ProductId))
             {
                 Msg.Warn("Этот товар есть в заказах, поэтому его нельзя удалить.");
                 return;
             }
             if (!Msg.Ask("Удалить товар без возможности восстановления?")) return;
+
+            var photo = product.PhotoPath;
             db.Products.Remove(product);
             if (!db.TrySave()) return;
+            PhotoHelper.Delete(photo);
             window.DialogResult = true;
+        }
+
+        private List<string> Validate()
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(Article)) errors.Add("Введите артикул");
+            else if (db.Products.Any(p => p.Article == Article.Trim() && p.ProductId != product.ProductId))
+                errors.Add("Товар с таким артикулом уже есть");
+
+            if (string.IsNullOrWhiteSpace(ProductName)) errors.Add("Введите наименование");
+            if (CategoryId == 0)     errors.Add("Выберите категорию");
+            if (ManufacturerId == 0) errors.Add("Выберите производителя");
+            if (SupplierId == 0)     errors.Add("Выберите поставщика");
+
+            if (!decimal.TryParse(Price, out var p) || p < 0)
+                errors.Add("Цена должна быть числом не меньше 0");
+            if (!int.TryParse(Quantity, out var q) || q < 0)
+                errors.Add("Количество должно быть целым числом не меньше 0");
+            if (!int.TryParse(Discount, out var d) || d is < 0 or > 100)
+                errors.Add("Скидка должна быть целым числом от 0 до 100");
+
+            return errors;
         }
     }
 }

@@ -10,7 +10,7 @@ namespace ShoesShopApp.ViewModels;
 public partial class OrdersViewModel : ObservableObject
 {
     private readonly User user;
-    public bool IsAdmin;
+    public bool IsAdmin { get; }
 
     [ObservableProperty] private List<Order> orders = new();
     [ObservableProperty] private Order? selected;
@@ -25,12 +25,18 @@ public partial class OrdersViewModel : ObservableObject
     private void Load()
     {
         using var db = new AppDbContext();
-        Orders = db.Orders
+
+        IQueryable<Order> q = db.Orders
             .Include(o => o.Status)
             .Include(o => o.PickupPoint)
             .Include(o => o.OrderItems).ThenInclude(i => i.Product)
-            .OrderBy(o => o.OrderId)
-            .ToList();
+            .AsNoTracking();
+
+        // Клиент видит только свои заказы
+        if (!user.IsAdmin && !user.IsStaff)
+            q = q.Where(o => o.UserId == user.UserId);
+
+        Orders = q.OrderBy(o => o.OrderId).ToList();
     }
 
     private void OpenForm(int? id)
