@@ -1,15 +1,14 @@
 ﻿using System.Windows;
 
-namespace ShoesShopApp.ViewModels
+namespace ShoesShopApp.ViewModels;
+
+public static class Nav
 {
-    public static class Nav
+    public static void To(Window next)
     {
-        public static void To(Window next)
-        {
-            var current = Application.Current.MainWindow;
-            Application.Current.MainWindow = next;
-            next.Show();
-            current.Close();
-        }
+        var cur = Application.Current.MainWindow;
+        Application.Current.MainWindow = next;
+        next.Show();
+        cur.Close();
     }
 }

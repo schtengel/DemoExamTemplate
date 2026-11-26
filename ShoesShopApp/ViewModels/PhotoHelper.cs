@@ -2,36 +2,33 @@
 using SixLabors.ImageSharp.Processing;
 using System.IO;
 
-namespace ShoesShopApp.ViewModels
+namespace ShoesShopApp.ViewModels;
+
+public static class PhotoHelper
 {
-    public static class PhotoHelper
+    private static readonly string Dir = Path.Combine(AppContext.BaseDirectory, "Images");
+
+    public static string Save(string src)
     {
-        private static readonly string ImagesDir = Path.Combine(AppContext.BaseDirectory, "Images");
+        Directory.CreateDirectory(Dir);
+        var rel = Path.Combine("Images", $"{Guid.NewGuid()}.png");
+        using var img = Image.Load(src);
+        img.Mutate(x => x.Resize(new ResizeOptions { Size = new Size(300, 200), Mode = ResizeMode.Max }));
+        img.Save(Path.Combine(AppContext.BaseDirectory, rel));
+        return rel;
+    }
 
-        public static string Save(string sourceFile)
+    public static void Delete(string? rel)
+    {
+        if (string.IsNullOrEmpty(rel)) return;
+        var full = Path.Combine(AppContext.BaseDirectory, rel);
+        if (!File.Exists(full)) return;
+        if (Path.GetExtension(full).Equals(".jpg", StringComparison.OrdinalIgnoreCase)) return; // сид-демо
+        try { File.Delete(full); }
+        catch (IOException)
         {
-            Directory.CreateDirectory(ImagesDir);
-
-            var relativePath = Path.Combine("Images", $"{Guid.NewGuid()}.png");
-            var fullPath     = Path.Combine(AppContext.BaseDirectory, relativePath);
-
-            var options = new ResizeOptions
-            {
-                Size = new Size(300, 200),
-                Mode = ResizeMode.Max
-            };
-
-            using var image = Image.Load(sourceFile);
-            image.Mutate(x => x.Resize(options));
-            image.Save(fullPath);
-            return relativePath;
-        }
-
-        public static void Delete(string? relativePath)
-        {
-            if (string.IsNullOrEmpty(relativePath)) return;
-            var fullPath = Path.Combine(AppContext.BaseDirectory, relativePath);
-            if (File.Exists(fullPath)) File.Delete(fullPath);
+            // Image-контрол ещё держит файл — повторим через полсекунды, когда окно закроется
+            Task.Delay(500).ContinueWith(_ => { try { File.Delete(full); } catch { } });
         }
     }
 }
