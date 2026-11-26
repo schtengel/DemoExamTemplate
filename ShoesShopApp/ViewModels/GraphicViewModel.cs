@@ -134,7 +134,7 @@ public partial class GraphicViewModel : ObservableObject
                         {
                             summary.Spacing(4);
                             summary.Item().Text($"Общее количество заказов за период: {TotalOrdersCount}").SemiBold();
-                            summary.Item().Text($"Общая сумма заказов за период: {TotalOrdersSum:N2} ₽").SemiBold();
+                            summary.Item().Text($"Общая сумма заказов за период: {TotalOrdersSum:N2} руб").SemiBold();
                             summary.Item().Text($"Общее количество производителей топ-5: {Top5ManufacturersCount}").SemiBold();
                         });
 
