@@ -1,0 +1,66 @@
+﻿<Window x:Class="ShoesShopApp.Views.AnalyticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Аналитика" Width="900" Height="650"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource Win}">
+
+    <DockPanel Margin="15">
+        <StackPanel DockPanel.Dock="Top">
+
+            <DockPanel>
+                <StackPanel>
+                    <TextBlock Text="Аналитика заказов" FontSize="22" FontWeight="Bold"/>
+                    <TextBlock x:Name="UserInfoText" Margin="0,5,0,10"/>
+                </StackPanel>
+
+                <Button Content="Экспорт в PDF" Click="ExportPdf_Click"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"/>
+            </DockPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,15">
+                <TextBlock Text="Дата начала:" VerticalAlignment="Center"/>
+                <DatePicker x:Name="StartDatePicker" Width="130" Margin="5,0,15,0"
+                            SelectedDateChanged="DateChanged"/>
+
+                <TextBlock Text="Дата окончания:" VerticalAlignment="Center"/>
+                <DatePicker x:Name="EndDatePicker" Width="130" Margin="5,0"
+                            SelectedDateChanged="DateChanged"/>
+            </StackPanel>
+
+            <UniformGrid Columns="3" Margin="0,0,0,15">
+
+                <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="3">
+                    <StackPanel>
+                        <TextBlock Text="Количество заказов"/>
+                        <TextBlock x:Name="OrdersCountText" FontSize="24" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+                <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="3">
+                    <StackPanel>
+                        <TextBlock Text="Производителей в топ-5"/>
+                        <TextBlock x:Name="ManufacturerCountText" FontSize="24" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+                <Border BorderBrush="LightGray" BorderThickness="1" Padding="10" Margin="3">
+                    <StackPanel>
+                        <TextBlock Text="Сумма заказов"/>
+                        <TextBlock x:Name="TotalSumText" FontSize="24" FontWeight="Bold"/>
+                    </StackPanel>
+                </Border>
+
+            </UniformGrid>
+
+            <TextBlock Text="Топ-5 моделей по производителям"
+                       FontSize="18" FontWeight="Bold" Margin="0,5,0,10"/>
+
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="ChartPanel"/>
+        </ScrollViewer>
+
+    </DockPanel>
+</Window>

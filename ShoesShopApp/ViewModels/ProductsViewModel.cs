@@ -74,6 +74,7 @@ namespace ShoesShopApp.ViewModels
 
         [RelayCommand] private void Add() => OpenForm(null);
         [RelayCommand] private void Orders() => new OrdersWindow(User!).ShowDialog();
+        [RelayCommand] private void Analytics() => new AnalyticsWindow(User!).ShowDialog();
         [RelayCommand] private void Logout() => Nav.To(new LoginWindow());
     }
 }

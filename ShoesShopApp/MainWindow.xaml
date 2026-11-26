@@ -19,6 +19,8 @@
             <Image Source="/Images/Icon.png" Height="50" Margin="10 5"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="Заказы" Command="{Binding OrdersCommand}" Visibility="{Binding IsStaff, Converter={StaticResource BoolToVis}}"/>
+                <Button Content="Аналитика" Command="{Binding AnalyticsCommand}"
+                        Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
                 <Button Content="Добавить товар" Command="{Binding AddCommand}" Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
             </StackPanel>
 
